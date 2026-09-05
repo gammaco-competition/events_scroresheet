@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกคะแนนการแข่งขัน</title>
+  
+  <!-- Fonts & Bootstrap 5 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Prompt:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #e6eef8;
+      --base-font-size: 18px;
+      --shadow-dark: #b8c4d4;
+      --shadow-light: #ffffff;
+      --primary-color: #2563eb;
+      --text-color: #2d3748;
+    }
+    
+    body {
+      font-family: 'Prompt', sans-serif;
+      font-size: var(--base-font-size);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+    }
+
+    .card {
+      border-radius: 24px;
+      background: var(--bg-color);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      font-weight: 700;
+      font-size: 1.35rem;
+      background: linear-gradient(145deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border-bottom: none;
+      padding: 1rem 1.25rem;
+      box-shadow: 3px 3px 6px var(--shadow-dark);
+    }
+
+    .card-footer {
+      background: var(--bg-color);
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .form-control, .form-select {
+      font-size: 1.15rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-color);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      color: var(--text-color);
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      outline: none;
+      background: var(--bg-color);
+      border-color: var(--primary-color);
+      box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light), 0 0 0 0.25rem rgba(37, 99, 235, 0.2);
+    }
+
+    .p-3.bg-light {
+      background: var(--bg-color) !important;
+      border-radius: 18px;
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light) !important;
+      border: none !important;
+    }
+
+    .banner-container img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 24px;
+      box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    
+    .timer-display {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(4rem, 6.5vw, 9rem);
+      font-weight: 900;
+      letter-spacing: 2px;
+      line-height: 1;
+      cursor: pointer;
+      user-select: none;
+      
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+      
+      border-radius: 36px;
+      background: var(--bg-color);
+      color: var(--primary-color);
+      border: 4px solid var(--bg-color);
+      box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+      transition: all 0.25s ease;
+      font-variant-numeric: tabular-nums;
+      word-break: break-all;
+    }
+
+    .timer-display:hover {
+      transform: translateY(-2px);
+      box-shadow: 14px 14px 28px var(--shadow-dark), -14px -14px 28px var(--shadow-light);
+    }
+
+    .timer-running {
+      color: #10b981 !important;
+      box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light) !important;
+      animation: pulse-neu-green 1.5s infinite;
+    }
+
+    .timer-warning {
+      color: #ef4444 !important;
+    }
+
+    .timer-locked {
+      opacity: 0.7;
+      cursor: not-allowed !important;
+      color: #94a3b8 !important;
+      box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light) !important;
+    }
+
+    @keyframes pulse-neu-green {
+      0% { box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light); }
+      50% { box-shadow: 8px 8px 20px rgba(16, 185, 129, 0.3), -8px -8px 20px var(--shadow-light); }
+      100% { box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light); }
+    }
+
+    .neu-box {
+      background: var(--bg-color);
+      border-radius: 16px;
+      padding: 8px 16px;
+      box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    }
+
+    .btn-neu-sm {
+      background: var(--bg-color);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+      color: var(--text-color);
+      transition: all 0.2s ease;
+    }
+
+    .btn-score-option {
+      font-weight: 700;
+      min-width: 65px;
+      border-radius: 14px !important;
+      margin: 3px;
+      border: none !important;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline-primary {
+      background: var(--bg-color);
+      color: var(--primary-color);
+      box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+    }
+
+    .btn-primary.active, .btn-primary:active {
+      background: var(--bg-color) !important;
+      color: var(--primary-color) !important;
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light) !important;
+    }
+
+    .btn-outline-success {
+      background: var(--bg-color);
+      color: #10b981;
+      box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+    }
+
+    .btn-success.active, .btn-success:active {
+      background: var(--bg-color) !important;
+      color: #10b981 !important;
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light) !important;
+    }
+
+    .btn-action-danger {
+      background: var(--bg-color);
+      color: #ef4444;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    }
+
+    .btn-action-success {
+      background: var(--bg-color);
+      color: #10b981;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    }
+
+    .btn-submit-neu {
+      background: linear-gradient(145deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: none;
+      border-radius: 18px;
+      box-shadow: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+    }
+
+    .mission-remark {
+      color: #ef4444;
+      font-size: 0.75em;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .bonus-box {
+      background: var(--bg-color);
+      border-left: 6px solid #f59e0b !important;
+      border-radius: 18px;
+      padding: 16px 20px;
+      margin-top: -8px;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    }
+  </style>
+</head>
+<body>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="neu-box d-flex align-items-center">
+      <span class="fw-bold me-2">ขนาดตัวหนังสือ:</span>
+      <button class="btn btn-neu-sm btn-sm fw-bold me-1" onclick="changeFontSize(-2)">A-</button>
+      <button class="btn btn-neu-sm btn-sm fw-bold me-1" onclick="resetFontSize()">ปกติ</button>
+      <button class="btn btn-neu-sm btn-sm fw-bold" onclick="changeFontSize(2)">A+</button>
+    </div>
+    <button class="btn btn-neu-sm btn-sm py-2 px-3 fw-bold" onclick="updateBannerUrl()">🖼️ เปลี่ยนรูป Banner</button>
+  </div>
+
+  <div class="banner-container mb-4">
+    <a id="bannerLink" href="#" target="_blank">
+      <img id="bannerImg" src="https://lh3.googleusercontent.com/d/1d3WOxduJEduzJNqOIdI4xoPyRDoE2bO-" alt="Event Banner">
+    </a>
+  </div>
+
+  <form id="scoreForm" onsubmit="handleFormSubmit(event)">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>1. ข้อมูลทีม / Team Info</span>
+        <span id="editStatusBadge" class="badge bg-warning text-dark fs-6" style="display: none;">✏️ โหมดแก้ไขคะแนนเดิม</span>
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">รอบการแข่งขัน (Round)</label>
+          <select class="form-select" id="roundSelect" onchange="onRoundChange()" required>
+            <option value="">-- เลือก Round --</option>
+            <option value="Round 1">Round 1</option>
+            <option value="Round 2">Round 2</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">สนาม / (Field)</label>
+          <select class="form-select" id="fieldSelect" onchange="onFieldChange()" required>
+            <option value="">-- กำลังโหลด Field... --</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-bold">ทีม / (Team)</label>
+          <select class="form-select" id="teamSelect" onchange="onTeamChange()" required>
+            <option value="">-- กรุณาเลือก Field ก่อน --</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded border">
+            <span class="fw-bold">สถาบัน / สังกัด (Institution): </span>
+            <span id="displayInstitution" class="text-primary fw-bold">-</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded border">
+            <span class="fw-bold">รุ่นอายุ (Age Group): </span>
+            <span id="displayAgeGroup" class="text-primary fw-bold">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card text-center">
+      <div class="card-header">2. นาฬิกาจับเวลา </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-center align-items-center gap-2 mb-3 p-2 rounded-3 flex-wrap" style="box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);">
+          <span class="fw-bold">⚙️ Setting ตั้งเวลาเป้าหมาย:</span>
+          <input type="number" id="targetSeconds" class="form-control text-center fw-bold" style="width: 110px;" value="120" min="1" max="3600" onchange="resetTimer()">
+          <span class="fw-bold">วินาที</span>
+        </div>
+        <p class="text-secondary mb-2 fs-5 fw-bold">👇 แตะที่กรอบสี่เหลี่ยมเพื่อ <strong>เริ่ม (Start)</strong> / <strong>หยุด (Stop)</strong></p>
+        
+        <div class="w-100 my-3 d-flex justify-content-center">
+          <div id="timerDisplay" class="timer-display" onclick="toggleTimer()">0.00</div>
+        </div>
+        
+        <div id="timerStatusText" class="fw-bold text-secondary mb-3 fs-5">สถานะ: หยุดอยู่ (กดที่ตัวเลขเพื่อเริ่ม)</div>
+        
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <button type="button" class="btn btn-action-danger btn-lg px-4 py-2 fw-bold fs-4" onclick="resetTimer()">🔄 รีเซ็ต (Reset)</button>
+          <button type="button" id="confirmTimerBtn" class="btn btn-action-success btn-lg px-4 py-2 fw-bold fs-4" style="display: none;" onclick="confirmTimer()">✅ ยืนยันเวลา (Confirm)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">3. ภารกิจและการให้คะแนน (Missions)</div>
+      <div class="card-body" id="missionContainer">
+        <div class="text-center text-muted">กำลังโหลดโจทย์จาก Google Sheet...</div>
+      </div>
+      <div class="card-footer text-end">
+        <span class="fs-4 fw-bold">คะแนนรวมทั้งหมด: </span>
+        <span id="totalScoreDisplay" class="fs-2 fw-bold text-success">0</span> คะแนน
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">4. บันทึกข้อมูล</div>
+      <div class="card-body text-center">
+        <button type="submit" id="submitBtn" class="btn btn-submit-neu btn-lg w-100 py-3 fw-bold fs-4">💾 บันทึกคะแนน</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  const EXTERNAL_GAS_URL = "https://script.google.com/macros/s/AKfycbyYz6lqD0wULZz6zvGx_-VQ8TM-FXBhP4gp6_62ov47SOqUkA9d56TSTCQwX0_MtST7aA/exec"; 
+  let globalTeamsData = [];
+  let globalMissionsData = [];
+  let globalExistingScores = [];
+  let currentFontSize = 22;
+  
+  let timerInterval = null;
+  let startTime = 0;
+  let elapsedTime = 0;
+  let isTimerLocked = false;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadInitialData();
+  });
+
+  const isGoogleEnvironment = typeof google !== 'undefined' && google.script && google.script.run;
+
+  function loadInitialData() {
+    if (isGoogleEnvironment) {
+      google.script.run
+        .withSuccessHandler(onDataLoaded)
+        .withFailureHandler(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'))
+        .getInitialData();
+    } else {
+      fetch(`${EXTERNAL_GAS_URL}?action=getInitialData`)
+        .then(res => res.json())
+        .then(data => onDataLoaded(data))
+        .catch(() => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ Google Sheet ได้', 'error'));
+    }
+  }
+
+  function onDataLoaded(data) {
+    globalTeamsData = data.teams || [];
+    globalMissionsData = data.missions || []; // บันทึกข้อมูลภารกิจไว้ตรวจเช็ก Limit
+    globalExistingScores = data.existingScores || [];
+    renderFieldDropdown(data.fields);
+    renderTeamDropdown([]);
+    renderMissions(globalMissionsData);
+  }
+
+  function renderFieldDropdown(fields) {
+    const select = document.getElementById('fieldSelect');
+    select.innerHTML = '<option value="">-- เลือก Field --</option>';
+    if (fields && fields.length > 0) {
+      fields.forEach(f => {
+        select.innerHTML += `<option value="${f}">${f}</option>`;
+      });
+    } else {
+      select.innerHTML = '<option value="">-- ไม่พบข้อมูล Field --</option>';
+    }
+  }
+
+  function onRoundChange() {
+    onFieldChange();
+  }
+
+  function onFieldChange() {
+    const selectedField = document.getElementById('fieldSelect').value;
+    if (!selectedField) {
+      renderTeamDropdown([]);
+    } else {
+      const filteredTeams = globalTeamsData.filter(t => t.group === selectedField);
+      renderTeamDropdown(filteredTeams);
+    }
+    document.getElementById('teamSelect').value = "";
+    onTeamChange();
+  }
+
+  function renderTeamDropdown(teams) {
+    const select = document.getElementById('teamSelect');
+    const selectedRound = document.getElementById('roundSelect')?.value;
+    const selectedField = document.getElementById('fieldSelect')?.value;
+
+    if (!selectedField) {
+      select.innerHTML = '<option value="">-- กรุณาเลือก Field ก่อน --</option>';
+      return;
+    }
+    if (!teams || teams.length === 0) {
+      select.innerHTML = '<option value="">-- ไม่พบทีมใน Field นี้ --</option>';
+      return;
+    }
+
+    select.innerHTML = '<option value="">-- เลือกทีม --</option>';
+    teams.forEach(t => {
+      const existRecord = globalExistingScores.find(s => 
+        s.round === selectedRound && s.field === selectedField && s.teamName === t.name
+      );
+
+      if (existRecord) {
+        select.innerHTML += `<option value="${t.name}">✅ ${t.name} (บันทึกแล้ว: ${existRecord.totalScore} คะแนน)</option>`;
+      } else {
+        select.innerHTML += `<option value="${t.name}">${t.name} (No. ${t.no})</option>`;
+      }
+    });
+  }
+
+  function onTeamChange() {
+    const selectedRound = document.getElementById('roundSelect').value;
+    const selectedField = document.getElementById('fieldSelect').value;
+    const teamName = document.getElementById('teamSelect').value;
+    const team = globalTeamsData.find(t => t.name === teamName);
+    
+    if (team) {
+      document.getElementById('displayInstitution').innerText = team.institution || '-';
+      document.getElementById('displayAgeGroup').innerText = team.ageGroup || '-';
+    } else {
+      document.getElementById('displayInstitution').innerText = '-';
+      document.getElementById('displayAgeGroup').innerText = '-';
+    }
+
+    const existRecord = globalExistingScores.find(s => 
+      s.round === selectedRound && s.field === selectedField && s.teamName === teamName
+    );
+
+    const submitBtn = document.getElementById('submitBtn');
+    const editBadge = document.getElementById('editStatusBadge');
+
+    if (existRecord) {
+      editBadge.style.display = 'inline-block';
+      submitBtn.innerText = '💾 อัปเดต/แก้ไขคะแนนเข้าระบบ';
+
+      elapsedTime = (existRecord.timeUsed || 0) * 1000;
+      updateTimerDisplay();
+      if (elapsedTime > 0) {
+        document.getElementById('confirmTimerBtn').style.display = 'inline-block';
+      }
+
+      populateExistingMissionsData(existRecord.missionDetails);
+    } else {
+      editBadge.style.display = 'none';
+      submitBtn.innerText = '💾 บันทึกคะแนน';
+      resetTimer();
+      resetMissionsToDefault();
+    }
+
+    updateMissionVisibility();
+  }
+
+  function populateExistingMissionsData(details) {
+    if (!details) return;
+    document.querySelectorAll('.mission-row').forEach(row => {
+      const missionId = row.dataset.missionId;
+      if (details.hasOwnProperty(missionId)) {
+        const scoreVal = details[missionId];
+        const input = row.querySelector('.mission-input');
+        if (input) {
+          input.value = scoreVal;
+        }
+
+        const btnGroup = row.querySelector('.btn-group');
+        if (btnGroup) {
+          btnGroup.querySelectorAll('.btn').forEach(btn => {
+            btn.classList.remove('active', 'btn-primary', 'btn-success');
+            btn.classList.add(btn.innerText.includes('Yes') ? 'btn-outline-success' : 'btn-outline-primary');
+            
+            const scoreInAttr = btn.getAttribute('onclick');
+            if (scoreInAttr && scoreInAttr.includes(`, ${scoreVal},`)) {
+              btn.classList.remove('btn-outline-primary', 'btn-outline-success');
+              btn.classList.add('active', btn.innerText.includes('Yes') ? 'btn-success' : 'btn-primary');
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function resetMissionsToDefault() {
+    document.querySelectorAll('.mission-row').forEach(row => {
+      resetMissionInputValue(row);
+    });
+  }
+
+  function renderMissions(missions) {
+    const container = document.getElementById('missionContainer');
+    if (!missions || missions.length === 0) {
+      container.innerHTML = '<div class="text-center text-muted">ไม่พบข้อมูลใน sheet "Missions"</div>';
+      return;
+    }
+    container.innerHTML = '';
+
+    // 1. จัดกลุ่มภารกิจตาม Main Group
+    const groupedMissions = {};
+    missions.forEach(m => {
+      const groupName = m.mainGroup || 'ภารกิจ';
+      if (!groupedMissions[groupName]) {
+        groupedMissions[groupName] = [];
+      }
+      groupedMissions[groupName].push(m);
+    });
+
+    let groupIndex = 0;
+
+    // 2. วนลูปสร้าง UI แยกตามภารกิจหลัก
+    Object.keys(groupedMissions).forEach(groupName => {
+      groupIndex++;
+      const groupItems = groupedMissions[groupName];
+      
+      // คำนวณคะแนนเต็มรวมของภารกิจหลักกลุ่มนี้
+      const groupMaxScore = groupItems.reduce((sum, item) => sum + item.maxScore, 0);
+      const groupId = `mainGroup_${groupIndex}`;
+
+      let groupHTML = `
+        <div class="card mb-4 border-0" style="box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light); border-radius: 20px;">
+          <div class="card-header bg-primary bg-gradient text-white d-flex justify-content-between align-items-center py-2 px-3" style="border-radius: 18px 18px 0 0;">
+            <span class="fw-bold fs-5">📌 ${groupName}</span>
+            <span class="badge bg-light text-primary fs-6">
+              รวม: <span id="groupTotalScore_${groupId}">0</span> / ${groupMaxScore} คะแนน
+            </span>
+          </div>
+          <div class="card-body p-3">
+      `;
+
+      groupItems.forEach((m) => {
+        let optStr = (m.options || '').trim();
+        let inputUI = '';
+
+        // ปุ่ม Yes / No
+        if (optStr.toUpperCase() === 'YES_NO') {
+          inputUI = `
+            <div class="btn-group w-100" role="group" id="btnGroup_${m.id}">
+              <button type="button" class="btn btn-outline-success btn-score-option py-2" onclick="selectScore('${m.id}', ${m.maxScore}, this, 1)">Yes (${m.maxScore})</button>
+              <button type="button" class="btn btn-primary btn-score-option py-2 active" onclick="selectScore('${m.id}', 0, this, 0)">No (0)</button>
+            </div>
+            <input type="hidden" class="mission-input" data-id="${m.id}" data-max="${m.maxScore}" data-group-id="${groupId}" data-btn-val="0" value="0">
+          `;
+        
+        // ปุ่มหลายตัวเลือก (เช่น 0, 1, 2)
+        } else if (optStr.includes(',')) {
+          let multiplier = 1;
+          if (optStr.includes('*')) {
+            const parts = optStr.split('*');
+            optStr = parts[0].trim();
+            multiplier = parseFloat(parts[1]) || 1;
+          }
+
+          const scoreOpts = optStr.split(',');
+          let btnItems = '';
+          let initialScore = 0;
+          let initialBtnVal = 0;
+
+          scoreOpts.forEach((item, i) => {
+            let label = item.trim();
+            let scoreVal = 0;
+            let btnVal = 0;
+
+            if (label.includes(':')) {
+              const pair = label.split(':');
+              label = pair[0].trim();
+              scoreVal = parseFloat(pair[1]) || 0;
+              btnVal = parseFloat(label) || 0;
+            } else {
+              const numVal = parseFloat(label) || 0;
+              scoreVal = numVal * multiplier;
+              btnVal = numVal;
+            }
+
+            if (i === 0) {
+              initialScore = scoreVal;
+              initialBtnVal = btnVal;
+            }
+
+            const isDefault = i === 0 ? 'btn-primary active' : 'btn-outline-primary';
+            btnItems += `<button type="button" class="btn ${isDefault} btn-score-option py-2" onclick="selectScore('${m.id}', ${scoreVal}, this, ${btnVal})">${label}</button>`;
+          });
+          
+          inputUI = `
+            <div class="btn-group w-100 flex-wrap gap-1" role="group" id="btnGroup_${m.id}">
+              ${btnItems}
+            </div>
+            <input type="hidden" class="mission-input" data-id="${m.id}" data-max="${m.maxScore}" data-group-id="${groupId}" data-btn-val="${initialBtnVal}" value="${initialScore}">
+          `;
+
+        // ช่องกรอกตัวเลข
+        } else {
+          inputUI = `
+            <div class="d-flex align-items-center gap-2">
+              <input type="number" class="form-control mission-input text-center fw-bold fs-4" 
+                     data-id="${m.id}" data-max="${m.maxScore}" data-group-id="${groupId}" data-btn-val="0" value="0" min="0" max="${m.maxScore}" 
+                     oninput="onScoreInputChange('${m.id}')">
+              <span class="fs-5">/ ${m.maxScore}</span>
+            </div>
+          `;
+        }
+
+        let titleHTML = `<div class="fw-bold fs-5">${m.name}</div>`;
+        let rowStyleClass = 'mb-3 pb-3 border-bottom';
+
+        if (m.isBonus) {
+          titleHTML = `<div class="fw-bold fs-5 text-dark"><span class="badge bg-warning text-dark me-2">Bonus</span>${m.name}</div>`;
+          rowStyleClass = 'bonus-box';
+        }
+
+        const remarkHTML = m.remark ? `<div class="mission-remark">ข้อสังเกต/เงื่อนไข: ${m.remark}</div>` : '';
+
+        groupHTML += `
+          <div class="row align-items-center mission-row ${rowStyleClass}" 
+               id="missionRow_${m.id}"
+               data-mission-id="${m.id}" 
+               data-age-group="${m.ageGroup || ''}" 
+               data-req-cond="${m.reqCondition || ''}">
+            <div class="col-md-6">
+              ${titleHTML}
+              <small class="text-muted fs-6">
+                คะแนนที่ได้: <span id="currentScoreDisplay_${m.id}" class="fw-bold text-primary">0</span> / ${m.maxScore}
+              </small>
+              ${remarkHTML}
+            </div>
+            <div class="col-md-6 mt-2 mt-md-0">
+              ${inputUI}
+            </div>
+          </div>
+        `;
+      });
+
+      groupHTML += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML += groupHTML;
+    });
+
+    updateMissionVisibility();
+  }
+
+  function updateMissionVisibility() {
+    const selectedAgeGroup = document.getElementById('displayAgeGroup')?.innerText?.trim() || '';
+    const hasAgeGroupSelected = selectedAgeGroup && selectedAgeGroup !== '-';
+
+    document.querySelectorAll('.mission-row').forEach(row => {
+      const targetAge = row.dataset.ageGroup;
+      const reqCond = row.dataset.reqCond;
+
+      let isVisible = true;
+
+      if (hasAgeGroupSelected) {
+        if (targetAge && targetAge.toUpperCase() !== 'ALL' && targetAge !== '') {
+          if (!targetAge.toLowerCase().includes(selectedAgeGroup.toLowerCase())) {
+            isVisible = false;
+          }
+        }
+      }
+
+      if (isVisible && reqCond) {
+        isVisible = evaluateCondition(reqCond);
+      }
+
+      if (isVisible) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+        resetMissionInputValue(row);
+      }
+    });
+
+    calculateTotalScore();
+  }
+
+  function evaluateCondition(condStr) {
+    if (!condStr || !condStr.trim()) return true;
+
+    const subConditions = condStr.split(/,|\&\&/);
+
+    for (let subCond of subConditions) {
+      subCond = subCond.trim();
+      if (!subCond) continue;
+
+      const match = subCond.match(/(.+?)\s*(>=|>|==|=|<=|<)\s*([0-9.]+)/);
+      if (!match) continue;
+
+      const leftSide = match[1].trim();
+      const op = match[2];
+      const reqVal = parseFloat(match[3]);
+
+      const missionIds = leftSide.split('+').map(id => id.trim());
+      let sumScore = 0;
+
+      missionIds.forEach(id => {
+        const input = document.querySelector(`.mission-input[data-id="${id}"]`);
+        if (input) {
+          sumScore += parseFloat(input.value) || 0;
+        }
+      });
+
+      let isPass = false;
+      if (op === '>=' && sumScore >= reqVal) isPass = true;
+      else if (op === '>' && sumScore > reqVal) isPass = true;
+      else if ((op === '==' || op === '=') && sumScore === reqVal) isPass = true;
+      else if (op === '<=' && sumScore <= reqVal) isPass = true;
+      else if (op === '<' && sumScore < reqVal) isPass = true;
+
+      if (!isPass) return false;
+    }
+
+    return true;
+  }
+
+  // ฟังก์ชันสแกนและแจ้งเตือนเมื่อคะแนนเกิน Limit
+  function validateMissionLimits(changedMissionId) {
+    if (!globalMissionsData || globalMissionsData.length === 0) return true;
+
+    for (let m of globalMissionsData) {
+      if (!m.limitCondition) continue;
+
+      const match = m.limitCondition.match(/(.+?)\s*(<=|<|=)\s*([0-9.]+)/);
+      if (!match) continue;
+
+      const leftSide = match[1].trim();     
+      const op = match[2];                  
+      const maxLimit = parseFloat(match[3]); 
+
+      const missionIds = leftSide.split('+').map(id => id.trim());
+
+      if (!missionIds.includes(changedMissionId)) continue;
+
+      let currentSum = 0;
+      let missionNames = [];
+
+      missionIds.forEach(id => {
+        const input = document.querySelector(`.mission-input[data-id="${id}"]`);
+        if (input) {
+          // ดึงค่าหมายเลขปุ่มที่เลือก (ถ้าไม่มีให้ใช้ค่าคะแนนเดิมเป็น Fallback)
+          const btnVal = input.dataset.btnVal !== undefined ? input.dataset.btnVal : input.value;
+          currentSum += parseFloat(btnVal) || 0;
+        }
+        const targetM = globalMissionsData.find(item => item.id === id);
+        if (targetM) missionNames.push(targetM.name || id);
+      });
+
+      let isExceeded = false;
+      if (op === '<=' && currentSum > maxLimit) isExceeded = true;
+      else if (op === '<' && currentSum >= maxLimit) isExceeded = true;
+      else if (op === '=' && currentSum > maxLimit) isExceeded = true;
+
+      if (isExceeded) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'จำนวนรวมเกินกำหนด!',
+          text: `ผลรวมจำนวนปุ่มที่เลือกของ (${missionNames.join(' + ')}) รวมกันต้องไม่เกิน ${maxLimit}`,
+          confirmButtonColor: '#2563eb'
+        });
+
+        const row = document.getElementById(`missionRow_${changedMissionId}`);
+        if (row) resetMissionInputValue(row);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function resetMissionInputValue(rowEl) {
+    const input = rowEl.querySelector('.mission-input');
+    if (input) {
+      input.value = 0;
+      const missionId = input.dataset.id;
+      const scoreDisplay = document.getElementById(`currentScoreDisplay_${missionId}`);
+      if (scoreDisplay) scoreDisplay.innerText = "0";
+
+      const btnGroup = rowEl.querySelector('.btn-group');
+      if (btnGroup) {
+        const buttons = btnGroup.querySelectorAll('.btn');
+        buttons.forEach(btn => {
+          btn.classList.remove('active', 'btn-primary', 'btn-success');
+          btn.classList.add(btn.innerText.includes('Yes') ? 'btn-outline-success' : 'btn-outline-primary');
+        });
+
+        let defaultBtn = Array.from(buttons).find(btn => btn.innerText.includes('No')) || buttons[0];
+
+        if (defaultBtn) {
+          defaultBtn.classList.remove('btn-outline-primary', 'btn-outline-success');
+          defaultBtn.classList.add('active', defaultBtn.innerText.includes('Yes') ? 'btn-success' : 'btn-primary');
+        }
+      }
+    }
+  }
+
+  function selectScore(missionId, score, btnEl, btnVal) {
+    const parentGroup = document.getElementById(`btnGroup_${missionId}`);
+    if (parentGroup) {
+      parentGroup.querySelectorAll('.btn').forEach(btn => {
+        btn.classList.remove('active', 'btn-primary', 'btn-success');
+        btn.classList.add(btn.innerText.includes('Yes') ? 'btn-outline-success' : 'btn-outline-primary');
+      });
+
+      if (btnEl.innerText.includes('Yes')) {
+        btnEl.classList.remove('btn-outline-success');
+        btnEl.classList.add('btn-success', 'active');
+      } else {
+        btnEl.classList.remove('btn-outline-primary');
+        btnEl.classList.add('btn-primary', 'active');
+      }
+
+      const hiddenInput = parentGroup.parentElement.querySelector('.mission-input');
+      if (hiddenInput) {
+        hiddenInput.value = score; // เก็บไว้คำนวณคะแนนรวมหลัก
+        hiddenInput.dataset.btnVal = btnVal !== undefined ? btnVal : score; // บันทึกหมายเลขปุ่มไว้เช็ก Limit
+      }
+    }
+
+    if (!validateMissionLimits(missionId)) {
+      updateMissionVisibility();
+      return;
+    }
+
+    const scoreDisplay = document.getElementById(`currentScoreDisplay_${missionId}`);
+    if (scoreDisplay) scoreDisplay.innerText = score;
+
+    updateMissionVisibility();
+  }
+
+  function onScoreInputChange(missionId) {
+    if (missionId) {
+      if (!validateMissionLimits(missionId)) {
+        updateMissionVisibility();
+        return;
+      }
+
+      const input = document.querySelector(`.mission-input[data-id="${missionId}"]`);
+      const scoreDisplay = document.getElementById(`currentScoreDisplay_${missionId}`);
+      if (input && scoreDisplay) {
+        scoreDisplay.innerText = parseFloat(input.value) || 0;
+      }
+    }
+    updateMissionVisibility();
+  }
+
+  function calculateTotalScore() {
+    let total = 0;
+    const groupSums = {};
+
+    document.querySelectorAll('.mission-row').forEach(row => {
+      if (row.style.display !== 'none') {
+        const input = row.querySelector('.mission-input');
+        if (input) {
+          let val = parseFloat(input.value) || 0;
+          const max = parseFloat(input.dataset.max);
+          if (val > max) { input.value = max; val = max; }
+          if (val < 0) { input.value = 0; val = 0; }
+          total += val;
+
+          // สะสมคะแนนแยกรายกลุ่มภารกิจหลัก
+          const groupId = input.dataset.groupId;
+          if (groupId) {
+            groupSums[groupId] = (groupSums[groupId] || 0) + val;
+          }
+
+          const scoreDisplay = document.getElementById(`currentScoreDisplay_${input.dataset.id}`);
+          if (scoreDisplay) scoreDisplay.innerText = val;
+        }
+      }
+    });
+
+    // อัปเดตคะแนนรวมย่อยบนหัวการ์ดภารกิจหลัก
+    Object.keys(groupSums).forEach(groupId => {
+      const groupScoreEl = document.getElementById(`groupTotalScore_${groupId}`);
+      if (groupScoreEl) groupScoreEl.innerText = groupSums[groupId];
+    });
+
+    // อัปเดตคะแนนรวมทั้งสุทธิ
+    document.getElementById('totalScoreDisplay').innerText = total;
+  }
+
+  function updateTimerDisplay() {
+    const totalSecs = elapsedTime / 1000;
+    const seconds = Math.floor(totalSecs);
+    const hundredths = Math.floor((elapsedTime % 1000) / 10).toString().padStart(2, '0');
+
+    const display = document.getElementById('timerDisplay');
+    display.innerText = `${seconds}.${hundredths}`;
+
+    const targetSecs = parseFloat(document.getElementById('targetSeconds').value) || 120;
+    const remainingToTarget = targetSecs - totalSecs;
+
+    if (remainingToTarget <= 10 && remainingToTarget > 0) {
+      display.classList.add('timer-warning');
+    } else {
+      display.classList.remove('timer-warning');
+    }
+
+    if (totalSecs >= targetSecs && timerInterval) {
+      pauseTimer();
+      display.classList.add('timer-warning');
+      Swal.fire('หมดเวลา!', `การจับเวลาครบกำหนด ${targetSecs} วินาทีแล้ว`, 'warning');
+    }
+  }
+
+  function toggleTimer() {
+    if (isTimerLocked) {
+      Swal.fire('แจ้งเตือน', 'เวลานี้ถูกยืนยันแล้ว ไม่สามารถจับเวลาใหม่ได้ หากต้องการจับเวลาใหม่กรุณากดปุ่ม "รีเซ็ต"', 'warning');
+      return;
+    }
+
+    if (timerInterval) {
+      pauseTimer();
+    } else {
+      startTimer();
+    }
+  }
+
+  function startTimer() {
+    if (timerInterval || isTimerLocked) return;
+    startTime = Date.now() - elapsedTime;
+    const display = document.getElementById('timerDisplay');
+    const statusText = document.getElementById('timerStatusText');
+
+    display.classList.add('timer-running');
+    statusText.innerHTML = 'สถานะ: <span class="text-success fw-bold">กำลังจับเวลา... (กดที่ตัวเลขเพื่อหยุด)</span>';
+
+    document.getElementById('confirmTimerBtn').style.display = 'none';
+
+    timerInterval = setInterval(() => {
+      elapsedTime = Date.now() - startTime;
+      updateTimerDisplay();
+    }, 10);
+  }
+
+  function pauseTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    const display = document.getElementById('timerDisplay');
+    const statusText = document.getElementById('timerStatusText');
+
+    display.classList.remove('timer-running');
+
+    if (isTimerLocked) {
+      statusText.innerHTML = 'สถานะ: <span class="text-danger fw-bold">🔒 ยืนยันเวลาแล้ว (ไม่สามารถกดนาฬิกาได้อีก)</span>';
+      document.getElementById('confirmTimerBtn').style.display = 'none';
+    } else {
+      statusText.innerHTML = 'สถานะ: <span class="text-warning fw-bold">หยุดชั่วคราว (กดที่ตัวเลขเพื่อเล่นต่อ)</span>';
+      
+      if (elapsedTime > 0) {
+        document.getElementById('confirmTimerBtn').style.display = 'inline-block';
+      }
+    }
+  }
+
+  function confirmTimer() {
+    if (elapsedTime <= 0) return;
+
+    Swal.fire({
+      title: 'ยืนยันเวลาแข่ง?',
+      text: "เมื่อกดปุ่มยืนยันแล้วจะไม่สามารถกดจับเวลาใหม่ได้อีก!",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'ใช่, ยืนยันเวลา',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        isTimerLocked = true;
+        pauseTimer();
+        
+        const display = document.getElementById('timerDisplay');
+        display.classList.add('timer-locked');
+        
+        Swal.fire('ยืนยันสำเร็จ!', 'บันทึกการยืนยันเวลาแล้ว', 'success');
+      }
+    });
+  }
+
+  function resetTimer() {
+    pauseTimer();
+    elapsedTime = 0;
+    isTimerLocked = false;
+
+    const display = document.getElementById('timerDisplay');
+    display.classList.remove('timer-warning', 'timer-locked');
+
+    updateTimerDisplay();
+    
+    document.getElementById('confirmTimerBtn').style.display = 'none';
+    
+    const statusText = document.getElementById('timerStatusText');
+    statusText.innerHTML = 'สถานะ: <span class="text-secondary fw-bold">หยุดอยู่ (กดที่ตัวเลขเพื่อเริ่ม)</span>';
+  }
+
+  function changeFontSize(delta) {
+    currentFontSize = Math.max(16, Math.min(36, currentFontSize + delta));
+    document.documentElement.style.setProperty('--base-font-size', `${currentFontSize}px`);
+  }
+
+  function resetFontSize() {
+    currentFontSize = 22;
+    document.documentElement.style.setProperty('--base-font-size', '22px');
+  }
+
+  function updateBannerUrl() {
+    const currentImg = document.getElementById('bannerImg').src;
+    const newImgUrl = prompt('วาง URL ของรูปภาพ Banner ใหม่:', currentImg);
+    if (newImgUrl) {
+      document.getElementById('bannerImg').src = newImgUrl;
+      const newLinkUrl = prompt('วาง URL สำหรับคลิกที่ Banner (ถ้ามี):', '#');
+      if (newLinkUrl) document.getElementById('bannerLink').href = newLinkUrl;
+    }
+  }
+
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = '⏳ กำลังบันทึกข้อมูล...';
+
+    const missionDetails = {};
+    document.querySelectorAll('.mission-row').forEach(row => {
+      if (row.style.display !== 'none') {
+        const input = row.querySelector('.mission-input');
+        if (input) {
+          missionDetails[input.dataset.id] = parseFloat(input.value) || 0;
+        }
+      }
+    });
+
+    const timeInSeconds = parseFloat((elapsedTime / 1000).toFixed(2));
+
+    const payload = {
+      round: document.getElementById('roundSelect').value,
+      field: document.getElementById('fieldSelect').value,
+      teamName: document.getElementById('teamSelect').value,
+      totalScore: parseFloat(document.getElementById('totalScoreDisplay').innerText),
+      timeUsed: timeInSeconds,
+      missionDetails: missionDetails
+    };
+
+    if (isGoogleEnvironment) {
+      google.script.run
+        .withSuccessHandler((res) => onSubmitSuccess(submitBtn, res, payload))
+        .withFailureHandler(() => onSubmitError(submitBtn))
+        .saveScoreData(payload);
+    } else {
+      fetch(EXTERNAL_GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => onSubmitSuccess(submitBtn, { updated: false }, payload))
+      .catch(() => onSubmitError(submitBtn));
+    }
+  }
+
+  function onSubmitSuccess(btn, res, payload) {
+    const msg = res && res.updated ? 'แก้ไขข้อมูลคะแนนเดิมเรียบร้อยแล้ว' : 'บันทึกคะแนนใหม่เรียบร้อยแล้ว';
+    Swal.fire('สำเร็จ!', msg, 'success');
+
+    const existingIndex = globalExistingScores.findIndex(s => 
+      s.round === payload.round && s.field === payload.field && s.teamName === payload.teamName
+    );
+    if (existingIndex >= 0) {
+      globalExistingScores[existingIndex] = payload;
+    } else {
+      globalExistingScores.push(payload);
+    }
+
+    const savedRound = document.getElementById('roundSelect').value;
+    const savedField = document.getElementById('fieldSelect').value;
+
+    document.getElementById('teamSelect').value = "";
+    document.getElementById('displayInstitution').innerText = '-';
+    document.getElementById('displayAgeGroup').innerText = '-';
+    document.getElementById('editStatusBadge').style.display = 'none';
+
+    resetTimer();
+    renderMissions(globalMissionsData);
+
+    document.getElementById('roundSelect').value = savedRound;
+    document.getElementById('fieldSelect').value = savedField;
+
+    if (savedField) {
+      const filteredTeams = globalTeamsData.filter(t => t.group === savedField);
+      renderTeamDropdown(filteredTeams);
+    }
+
+    btn.disabled = false;
+    btn.innerText = '💾 บันทึกคะแนน';
+  }
+
+  function onSubmitError(btn) {
+    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+    btn.disabled = false;
+    btn.innerText = '💾 บันทึกคะแนน';
+  }
+</script>
+</body>
+</html>
