@@ -298,7 +298,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-center align-items-center gap-2 mb-3 p-2 rounded-3 flex-wrap" style="box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);">
           <span class="fw-bold">⚙️ Setting ตั้งเวลาเป้าหมาย:</span>
-          <input type="number" id="targetSeconds" class="form-control text-center fw-bold" style="width: 110px;" value="120" min="1" max="3600" onchange="resetTimer()">
+          <input type="number" id="targetSeconds" class="form-control text-center fw-bold" style="width: 110px;" value="180" min="1" max="3600" onchange="resetTimer()">
           <span class="fw-bold">วินาที</span>
         </div>
         <p class="text-secondary mb-2 fs-5 fw-bold">👇 แตะที่กรอบสี่เหลี่ยมเพื่อ <strong>เริ่ม (Start)</strong> / <strong>หยุด (Stop)</strong></p>
@@ -908,7 +908,7 @@
     const display = document.getElementById('timerDisplay');
     display.innerText = `${seconds}.${hundredths}`;
 
-    const targetSecs = parseFloat(document.getElementById('targetSeconds').value) || 120;
+    const targetSecs = parseFloat(document.getElementById('targetSeconds').value) || 180;
     const remainingToTarget = targetSecs - totalSecs;
 
     if (remainingToTarget <= 10 && remainingToTarget > 0) {
