@@ -427,7 +427,7 @@
       );
 
       if (existRecord) {
-        select.innerHTML += `<option value="${t.name}">✅ ${t.name} (บันทึกแล้ว: ${existRecord.totalScore} คะแนน)</option>`;
+        select.innerHTML += `<option value="${t.name}">✅ ${t.name} (${existRecord.totalScore} คะแนน)</option>`;
       } else {
         select.innerHTML += `<option value="${t.name}">${t.name} (No. ${t.no})</option>`;
       }
